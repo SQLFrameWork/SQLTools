@@ -24,6 +24,11 @@ BEGIN
     @Iterations                  - Number of rows created , Inserted or deleted during the test  (nothing speical about the default) 
 */
 
+
+IF @DatabaseName IS NULL
+    SET @DatabaseName  = DB_name()
+
+
 EXEC('DROP TABLE IF EXISTS [' + @DatabaseName + ']..TestTable')
 
 
@@ -39,8 +44,6 @@ DECLARE @StartTime datetime2, @EndTime datetime2, @Step varchar(100), @SQL_Query
 -- Create database if applicable 
 CREATE TABLE #Timings (Step nvarchar(100),Duration_ms bigint)
 
-IF @DatabaseName IS NULL
-    SET @DatabaseName  = DB_name()
 
 IF NOT EXISTS (SELECT 1 from sys.databases where name = @DatabaseName  )
 SELECT @NewDB = 1
@@ -62,7 +65,7 @@ SELECT @EndTime = sysdatetime()
 
 INSERT INTO #Timings VALUES (@Step, DATEDIFF(ms, @StartTime, @EndTime))
 
-SELECT  @SQL_Query = 'EXEC(''CREATE TABLE ' + @DatabaseName + '.dbo.TestTable (ID int PRIMARY KEY, Data1 nvarchar(100),Data2 nvarchar(100), CreatedAt datetime2)'')'
+SELECT  @SQL_Query = 'EXEC(''CREATE TABLE ' + @DatabaseName + '.dbo.TestTable (ID int IDENTITY(1,1) PRIMARY KEY, Data1 nvarchar(100),Data2 nvarchar(100), CreatedAt datetime2)'')'
 
 EXEC(@SQL_Query)
 
@@ -74,8 +77,8 @@ SELECT @SQL_Query = '
                     DECLARE @i INT = 1;
                     WHILE @i <= '+cast(@Iterations as varchar(8))  +' 
                     BEGIN
-                        INSERT INTO [' + @DatabaseName + '].dbo.TestTable (ID, Data1, Data2, CreatedAt)
-                        VALUES (@i, REPLICATE(''A'', 50), REPLICATE(''B'', 50), sysdatetime());
+                        INSERT INTO [' + @DatabaseName + '].dbo.TestTable (Data1, Data2, CreatedAt)
+                        VALUES (REPLICATE(''A'', 50), REPLICATE(''B'', 50), sysdatetime());
                         SET @i += 1;
                     END
                     '
@@ -90,9 +93,8 @@ SELECT @Step = 'Insert '+cast(@Iterations as varchar(8))  +'  Rows - Batch Inser
 
 SELECT @SQL_Query = '
     USE [' + @DatabaseName + '];
-    INSERT TestTable (ID, Data1, Data2, CreatedAt)
+    INSERT TestTable (Data1, Data2, CreatedAt)
     SELECT TOP '+cast(@Iterations as varchar(8))  +' 
-        '+cast(@Iterations as varchar(8))  +'  + ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID,
         REPLICATE(''C'', 50),
         REPLICATE(''D'', 50),
         sysdatetime()
@@ -203,4 +205,5 @@ EXEC('DROP TABLE IF EXISTS [' + @DatabaseName + ']..TestTable')
 END 
 GO 
 
-EXEC Test_CUD @databasename ='SQLToolKit'
+--EXEC Test_CUD @databasename ='SQLToolKit'
+--GO 3 

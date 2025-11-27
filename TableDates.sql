@@ -34,6 +34,15 @@ and xtype = ''U''
 
 '
 
+
+
+
+2
+
+
+
+
+
 DECLARE @sqlquery varchar(max) =''
 
 WHILE EXISTS (select TOP 1 * from #Command)

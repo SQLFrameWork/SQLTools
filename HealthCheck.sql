@@ -1,6 +1,5 @@
 SET NOCOUNT ON 
 
-
 DROP table if exists #JobFailures
 DROP table if exists #LogBloat
 DROP table if exists #StorageStatus
@@ -16,10 +15,8 @@ DROP TABLE IF EXISTS #Backups1
 CREATE TABLE #Backups (	DBname varchar(128), BackupDevice varchar(1024), SizeDB int, SecDuration bigint 
 						,RecoveryModel varchar(128), BackupType varchar(128), Completed datetime , DaysOld int )
 
-
 INSERT #Backups 
 EXEC Rpt_LastBackup ''
-
 
 DELETE #Backups  WHERE DaysOld <=1
 
@@ -28,11 +25,6 @@ select top 3
     ,DBname	, BackupDevice	, Completed , DaysOld
 INTO #Backups1
 FROM #Backups 
-
-
-
-
-
 
 -- SQL Agent Failed Jobs 
 SELECT top 2
@@ -173,6 +165,7 @@ IF NOT EXISTS (SELECT * from #backups)
        IF @TableStatus = @cross
               SET @ForceReport = @ForceReport +1
        SELECT @HTML_All =@HTML_All +REPLACE(REPLACE(REPLACE(@TableTemplate,'TableWidth',@Tablewidth),'TableCheck',@TableStatus),'Tabletitle','Database Backup Latency')
+       PRINT '#backups1'
        EXEC Convert2HTML @Table_name = '#backups1', @header ='None',@OrderBy = '1D'   ,@format = 2 ,@TableColor='Red',@f_body= @HTML_Table  output 
        IF @HTML_Table  IS NOT NULL 
               SELECT @HTML_All = @HTML_All +@HTML_Table 
@@ -186,6 +179,7 @@ IF NOT EXISTS (SELECT * from #JobFailures)
        IF @TableStatus = @cross
               SET @ForceReport = @ForceReport +1
        SELECT @HTML_All =@HTML_All +REPLACE(REPLACE(REPLACE(@TableTemplate,'TableWidth',@Tablewidth),'TableCheck',@TableStatus),'Tabletitle','SQL Server Agent Job Failures')
+       PRINT '#JobFailures'
        EXEC Convert2HTML @Table_name = '#JobFailures', @header ='None',@OrderBy = '1D'   ,@format = 2 ,@TableColor='Red',@f_body= @HTML_Table  output 
        IF @HTML_Table  IS NOT NULL 
               SELECT @HTML_All = @HTML_All +@HTML_Table 
@@ -200,6 +194,7 @@ IF NOT EXISTS (SELECT * from #LogBloat)
 --       IF @TableStatus = @cross
 --              SET @ForceReport = @ForceReport +1
        SELECT @HTML_All =@HTML_All +REPLACE(REPLACE(REPLACE(@TableTemplate,'TableWidth',@Tablewidth),'TableCheck',@TableStatus),'Tabletitle','Transaction Log Bloat ')
+       PRINT '#LogBloat'
        EXEC Convert2HTML @Table_name = '#LogBloat', @header ='None',@OrderBy = '1D'   ,@format = 2 ,@TableColor='Red',@f_body= @HTML_Table  output 
        IF @HTML_Table  IS NOT NULL 
               SELECT @HTML_All = @HTML_All +@HTML_Table 
@@ -212,6 +207,7 @@ IF NOT EXISTS (SELECT * from #StorageStatus)
        IF @TableStatus = @cross
               SET @ForceReport = @ForceReport +1
        SELECT @HTML_All =@HTML_All +REPLACE(REPLACE(REPLACE(@TableTemplate,'TableWidth',@Tablewidth),'TableCheck',@TableStatus),'Tabletitle','Storage  Status')
+       PRINT '#StorageStatus'
        EXEC Convert2HTML @Table_name = '#StorageStatus', @header ='None',@OrderBy = '1D'    ,@format = 2 ,@f_body= @HTML_Table  output 
        IF @HTML_Table  IS NOT NULL 
               SELECT @HTML_All = @HTML_All +@HTML_Table 
@@ -227,9 +223,15 @@ IF NOT EXISTS (SELECT * from #AGHealth)
  
        SELECT @HTML_All =@HTML_All +REPLACE(REPLACE(REPLACE(@TableTemplate,'TableWidth',@Tablewidth),'TableCheck',@TableStatus),'Tabletitle','Availability Group Health')
        IF @TableStatus = @tick
+       BEGIN 
+       PRINT '#AGHealth'
        EXEC Convert2HTML @Table_name = '#AGHealth', @header ='None',@OrderBy='1D',@format = 2 ,@TableColor='green',@f_body= @HTML_Table  output 
-            ELSE
+       END 
+       ELSE
+       BEGIN 
+       PRINT '#AGHealth'
        EXEC Convert2HTML @Table_name = '#AGHealth', @header ='None',@OrderBy = '1D'      ,@format = 2 ,@TableColor='red',@f_body= @HTML_Table  output 
+       END 
        IF @HTML_Table  IS NOT NULL 
               SELECT @HTML_All = @HTML_All +@HTML_Table 
        SELECT @HTML_All = @HTML_All +'<br>', @Tablewidth=@Tablewidth-100
@@ -243,6 +245,7 @@ IF NOT EXISTS (SELECT * from #AGJObSync)
               SET @ForceReport = @ForceReport +1
                              
        SELECT @HTML_All =@HTML_All +REPLACE(REPLACE(REPLACE(@TableTemplate,'TableWidth',@Tablewidth),'TableCheck',@TableStatus),'Tabletitle','Availability Group Job Sync')
+       PRINT '#AGJObSync'
        EXEC Convert2HTML @Table_name = '#AGJObSync', @header ='None',@OrderBy = '1D'    ,@format = 2 ,@f_body= @HTML_Table  output 
 
        IF @HTML_Table  IS NOT NULL 
@@ -258,6 +261,7 @@ IF NOT EXISTS (SELECT * from #AGLoginSync)
               SET @ForceReport = @ForceReport +1
  
        SELECT @HTML_All =@HTML_All +REPLACE(REPLACE(REPLACE(@TableTemplate,'TableWidth',@Tablewidth),'TableCheck',@TableStatus),'Tabletitle','Availability Group Login')
+       PRINT '#AGLoginSync'
        EXEC Convert2HTML @Table_name = '#AGLoginSync', @header ='None',@OrderBy = '1D'       ,@format = 2 ,@f_body= @HTML_Table  output 
 
        IF @HTML_Table  IS NOT NULL 
@@ -273,6 +277,7 @@ IF NOT EXISTS (SELECT * from #AGFailover)
               SET @ForceReport = @ForceReport +1
  
        SELECT @HTML_All =@HTML_All +REPLACE(REPLACE(REPLACE(@TableTemplate,'TableWidth',@Tablewidth),'TableCheck',@TableStatus),'Tabletitle','Availability Failover')
+       PRINT '#AGFailover'
        EXEC Convert2HTML @Table_name = '#AGFailover', @header ='None',@OrderBy = '1D'     ,@format = 2 ,@f_body= @HTML_Table  output 
 
        IF @HTML_Table  IS NOT NULL 
@@ -288,6 +293,7 @@ IF NOT EXISTS (SELECT * from #SQLrestart)
               SET @ForceReport = @ForceReport +1
  
        SELECT @HTML_All =@HTML_All +REPLACE(REPLACE(REPLACE(@TableTemplate,'TableWidth',@Tablewidth),'TableCheck',@TableStatus),'Tabletitle','Last SQL restart')
+       PRINT '#SQLrestart'
        EXEC Convert2HTML @Table_name = '#SQLrestart', @header ='None',@OrderBy = '1D'       ,@format = 2 ,@f_body= @HTML_Table  output 
 		
 
@@ -330,19 +336,11 @@ SELECT * from #AGLoginSync
 SELECT * from #AGFailover
 SELECT * from #SQLrestart
 
+SELECT @HTML_All EmailBody into #q
 
-
-
-
-
-SELECT @HTML_All TXT into #q
-
-select * from #q
-
+select @@servername SQLInstance , EmailBody  , getdate() CaptureDT from #q
 
 --Figure SUM(Max(Column Length)
-
-
 
 DECLARE @SQL_Query nvarchar(max) ='SELECT MAX(',  @TableName nvarchar(128), @TableLength int
 SELECT @SQL_Query = 'SELECT MAX('
@@ -351,9 +349,4 @@ SELECT @SQL_Query = @SQL_Query +' LEN('+Column_Name+') +' FROM tempdb.INFORMATIO
 SELECT @SQL_Query = LEFT (@SQL_Query, LEN(@SQL_Query ) -1)
 SELECT @SQL_Query = @SQL_Query +') FROM '+ @TableName 
 EXEC sp_executesql  @SQL_Query , N'@outValue int output', @Outvalue = @TableLength  OUTPUT 
---print @TableLength  
-
-
-
-
-
+print @TableLength  

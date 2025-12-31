@@ -37,7 +37,17 @@ and xtype = ''U''
 
 
 
-2
+SELECT TOP 20
+    qs.total_worker_time / qs.execution_count AS avg_cpu,
+    qs.total_worker_time,
+    qs.execution_count,
+    qs.plan_handle,
+    qs.sql_handle
+FROM sys.dm_exec_query_stats qs
+ORDER BY avg_cpu DESC;
+
+
+
 
 
 

@@ -48,11 +48,6 @@ ORDER BY avg_cpu DESC;
 
 
 
-
-
-
-
-
 DECLARE @sqlquery varchar(max) =''
 
 WHILE EXISTS (select TOP 1 * from #Command)
@@ -82,4 +77,4 @@ SELECT DBName	,DBSchema	,TableName	,ColumnName	,MaxDate	FROM CTE WHERE Row#<=1
 
 
 
-
+given where you currently are it may be worth reverting MAXDOP to 4 for a day or so to see what impact that has on your overnight feeds 
